@@ -6,12 +6,15 @@ using UnityEngine.SceneManagement;
 
 public class GameManagerScript : MonoBehaviour
 {
-    public GameObject playerPrefab;
-    public GameObject boxPrefab;
+   
     /// <summary>荷物を格納する場所のプレハブ</summary>
     public GameObject storePrefab;
     /// <summary>クリアーしたことを示すテキストの GameObject</summary>
     public GameObject clearText;
+    //動かない壁
+    public GameObject wallPrefab;
+    public GameObject playerPrefab;
+    public GameObject boxPrefab;
     int[,] map; // マップの元データ（数字）
     GameObject[,] field;    // map を元にしたオブジェクトの格納庫
 
@@ -59,6 +62,11 @@ public class GameManagerScript : MonoBehaviour
             return false;
         if (moveTo.x < 0 || moveTo.x >= field.GetLength(1))
             return false;
+        if (map[moveTo.y, moveTo.x] == 4)
+        {
+            return false;
+        }
+
 
         if (field[moveTo.y, moveTo.x] != null
             && field[moveTo.y, moveTo.x].tag == "Box")
@@ -109,16 +117,20 @@ public class GameManagerScript : MonoBehaviour
 
     void Start()
     {
+        Screen.SetResolution(1280, 720, false);
+
         clearText.SetActive(false);
 
         map = new int[,]
         {
-            { 0, 0, 3, 0, 0, },
-            { 0, 2, 0, 2, 0, },
-            { 3, 0, 1, 0, 3, },
-            { 0, 2, 0, 2, 0, },
-            { 0, 0, 3, 0, 0, },
-        };  // 0: 何もない, 1: プレイヤー, 2: 箱 3:ゴール
+            {4, 4, 4, 4, 4, 4, 4},
+            {4, 3, 0, 1, 0, 3, 4},
+            {4, 0, 2, 0, 2, 0, 4},
+            {4, 0, 0, 4, 0, 0, 4},
+            {4, 0, 2, 0, 2, 0, 4},
+            {4, 3, 0, 0, 0, 3, 4},
+            {4, 4, 4, 4, 4, 4, 4},
+        }; // 0: 何もない, 1: プレイヤー, 2: 箱 3:ゴール 4:壁
 
         field = new GameObject
         [
@@ -154,11 +166,18 @@ public class GameManagerScript : MonoBehaviour
                         new Vector3(x, -1 * y, 0),
                         Quaternion.identity);
                 }   // 格納場所を出す
+                else if (map[y, x] == 4)
+                {
+                    GameObject instance =
+                        Instantiate(wallPrefab,
+                        new Vector3(x, -1 * y, 0),
+                        Quaternion.identity);
+                }   // 壁を出す
             }
         }
     }
 
-    
+
     void Update()
     {
         if (IsClear() == false)
